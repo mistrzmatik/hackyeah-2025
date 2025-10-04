@@ -1,6 +1,14 @@
 
 :root {
-  --va-font-family: 'Source Sans Pro', sans-serif;
+  --va-font-family: "Lato Regular","Helvetica Neue","Helvetica","Arial",sans-serif;
+
+  --zus-color-1: #ffb34f;
+  --zus-color-2: #00993f;
+  --zus-color-3: #bec3ce;
+  --zus-color-4: #3f84d2;
+  --zus-color-5: #00416e;
+  --zus-color-6: #f05e5e;
+  --zus-color-7: #000000;
 }
 
 a {
