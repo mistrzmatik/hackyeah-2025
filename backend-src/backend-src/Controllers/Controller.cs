@@ -38,8 +38,8 @@
                     {
                         WysokoscRzeczywista = wartosc,
                         WysokoscUrealniona = wartosc / inflacja,
-                        NaKoncie = kwotaNaKoncie,
-                        NaSubkoncie = kwotaNaSubkoncie,
+                        NaKoncie = przewidywaneKonto[i],
+                        NaSubkoncie = przewidywaneSubkonto[i],
                     });
 
                     inflacja *= Dane.Inflacja[i];
