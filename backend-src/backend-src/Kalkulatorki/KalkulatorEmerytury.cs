@@ -23,7 +23,7 @@ namespace backend_src.Kalkulatorki
                 decimal czynnik = 1m;
                 if (waloryzacjaKonta != null)
                 {
-                    czynnik = waloryzacjaKonta.Value / 100m;
+                    czynnik = 1m + (waloryzacjaKonta.Value / 100m);
                 }
                 else if (Dane.WaloryzacjeKonta.TryGetValue(rok, out var procent))
                 {
@@ -54,7 +54,7 @@ namespace backend_src.Kalkulatorki
                 decimal czynnik = 1m;
                 if (waloryzacjaSubkonta != null)
                 {
-                    czynnik = waloryzacjaSubkonta.Value / 100m;
+                    czynnik = 1m + (waloryzacjaSubkonta.Value / 100m);
                 }
                 else if (Dane.WaloryzacjeSubkonta.TryGetValue(rok, out var procent))
                 {
@@ -81,7 +81,7 @@ namespace backend_src.Kalkulatorki
                 decimal czynnik = 1m;
                 if (waloryzacjaKonta != null)
                 {
-                    czynnik = waloryzacjaKonta.Value / 100m;
+                    czynnik = 1m + (waloryzacjaKonta.Value / 100m);
                 }
                 else if (Dane.WaloryzacjeKonta.TryGetValue(rok, out var procent))
                 {
@@ -108,7 +108,7 @@ namespace backend_src.Kalkulatorki
                 decimal czynnik = 1m;
                 if (waloryzacjaSubkonta != null)
                 {
-                    czynnik = waloryzacjaSubkonta.Value / 100m;
+                    czynnik = 1m + (waloryzacjaSubkonta.Value / 100m);
                 }
                 else if (Dane.WaloryzacjeSubkonta.TryGetValue(rok, out var procent))
                 {
