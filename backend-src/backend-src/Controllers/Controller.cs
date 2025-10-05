@@ -24,7 +24,7 @@
                 PostPrognozujEmerytureResponse wynik = new PostPrognozujEmerytureResponse();
 
                 var kwotaNaKoncie = kalkulatorEmerytury.ObliczKwoteNaKoncie(request.WynagrodzeniaBrutto, request.WskaznikWaloryzacjiKonta);
-                var kwotaNaSubkoncie = kalkulatorEmerytury.ObliczKwoteNaKoncie(request.WynagrodzeniaBrutto, request.WskaznikWaloryzacjiSubkonta);
+                var kwotaNaSubkoncie = kalkulatorEmerytury.ObliczKwoteNaSubkoncie(request.WynagrodzeniaBrutto, request.WskaznikWaloryzacjiSubkonta);
 
                 var przewidywaneKonto = kalkulatorEmerytury.PrzewidzWartoscNaKoncie(kwotaNaKoncie, request.WynagrodzeniaBrutto.Keys.Max(), 2100, request.WskaznikWaloryzacjiKonta);
                 var przewidywaneSubkonto = kalkulatorEmerytury.PrzewidzWartoscNaSubkoncie(kwotaNaSubkoncie, request.WynagrodzeniaBrutto.Keys.Max(), 2100, request.WskaznikWaloryzacjiSubkonta);
@@ -33,8 +33,7 @@
                 for (int i = przewidywaneKonto.Keys.Min(); i <= przewidywaneKonto.Keys.Max(); i++)
                 {
                     var wartosc = kalkulatorEmerytury.ObliczEmeryture(przewidywaneSubkonto[i], przewidywaneKonto[i], request.KapitalPoczatkowy, Dane.PrzewidywanaDlugoscTrwaniaZycia2024[request.Wiek] * 12);
-                    inflacja *= Dane.Inflacja[i];
-
+                    
                     wynik.PrzewidywanaEmerytura.Add(i, new PrzewidywanaEmerytura()
                     {
                         WysokoscRzeczywista = wartosc,
@@ -42,6 +41,8 @@
                         NaKoncie = kwotaNaKoncie,
                         NaSubkoncie = kwotaNaSubkoncie,
                     });
+
+                    inflacja *= Dane.Inflacja[i];
                 }
 
                 var rokPrzejsciaNaEmeryture = DateTime.Now.Year - request.Wiek + request.WiekPrzejsciaNaEmeryture;
