@@ -109,9 +109,13 @@ const firstReportOptions = ref({
   animationEasingUpdate: 'linear'
 });
 
-watch([gender, yearOfBirth, workingAges, grossSalary], async ([newGender, newYearOfBirth, newWorkingAges, newGrossSalary]) => {
+watch([gender, yearOfBirth, workingAges, grossSalary, includeSickLeave], async ([newGender, newYearOfBirth, newWorkingAges, newGrossSalary, newIncludeSickLeave]) => {
   await debouncedFetchReport();
 })
+
+watch(step, async (after) => {
+  await debouncedFetchReport();
+});
 
 let debounceTimer = null
 const debouncedFetchReport = () => {
@@ -132,12 +136,14 @@ const fetchReport = async () => {
       wiek: new Date().getFullYear() - yearOfBirth.value,
       wiekPrzejsciaNaEmeryture: workingAges.value[1],
       wynagrodzeniaBrutto: {2025: grossSalary.value},
+      sredniaIlosciDniL4WRoku: includeSickLeave.value ? 12 : 0
     });
 
-    //secondReportOptions.value.xAxis[0].data = Object.keys(response.przewidywanaEmerytura)
-    //secondReportOptions.value.series[0].data = Object.entries(response.przewidywanaEmerytura).map(([_, value]) => value.wysokoscRzeczywista)
+    secondReportOptions.value.xAxis[0].data = Object.keys(response.przewidywanaEmerytura)
+    secondReportOptions.value.series[0].data = Object.entries(response.przewidywanaEmerytura).map(([_, value]) => value.wysokoscRzeczywista)
+    secondReportOptions.value.series[1].data = Object.entries(response.przewidywanaEmerytura).map(([_, value]) => value.wysokoscUrealniona)
 
-    predictedRetirement.value = response.przewidywanaEmerytura[yearOfBirth.value + workingAges.value[1]].wysokoscRzeczywista;
+    predictedRetirement.value = response.przewidywanaEmerytura[yearOfBirth.value + workingAges.value[1]];
   } finally {
     isLoading.value = false;
   }
@@ -158,11 +164,16 @@ const secondReportOptions = ref({
       label: {
         backgroundColor: '#6a7985'
       }
-    }
+    },
   },
   legend: {
-    data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
+    data: ['Wysokość rzeczywista', 'Wysokość urealniona']
   },
+  color: [
+    "#00993f",
+    "#00416e",
+    "#bec3ce"
+  ],
   toolbox: {
     feature: {
       saveAsImage: {}
@@ -172,7 +183,7 @@ const secondReportOptions = ref({
     {
       type: 'category',
       boundaryGap: false,
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', '', '']
+      data: []
     }
   ],
   yAxis: [
@@ -182,58 +193,22 @@ const secondReportOptions = ref({
   ],
   series: [
     {
-      name: 'Email',
+      name: 'Wysokość rzeczywista',
       type: 'line',
-      stack: 'Total',
       areaStyle: {},
       emphasis: {
         focus: 'series'
       },
-      data: [120, 132, 101, 134, 90, 230, 210]
+      data: []
     },
     {
-      name: 'Union Ads',
+      name: 'Wysokość urealniona',
       type: 'line',
-      stack: 'Total',
       areaStyle: {},
       emphasis: {
         focus: 'series'
       },
-      data: [220, 182, 191, 234, 290, 330, 310]
-    },
-    {
-      name: 'Video Ads',
-      type: 'line',
-      stack: 'Total',
-      areaStyle: {},
-      emphasis: {
-        focus: 'series'
-      },
-      data: [150, 232, 201, 154, 190, 330, 410]
-    },
-    {
-      name: 'Direct',
-      type: 'line',
-      stack: 'Total',
-      areaStyle: {},
-      emphasis: {
-        focus: 'series'
-      },
-      data: [320, 332, 301, 334, 390, 330, 320]
-    },
-    {
-      name: 'Search Engine',
-      type: 'line',
-      stack: 'Total',
-      label: {
-        show: true,
-        position: 'top'
-      },
-      areaStyle: {},
-      emphasis: {
-        focus: 'series'
-      },
-      data: [820, 932, 901, 934, 1290, 1330, 1320]
+      data: []
     }
   ]
 });
@@ -359,20 +334,39 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
       </div>
     <div>
       
+      <VaCheckbox
+        v-model="includeSickLeave"
+        class="mb-6"
+        label="Uwzględniaj średnią liczbę dni zwolnienia lekarskiego w roku"
+      />
+      <VaPopover message="W Polsce średnia liczba dni zwolnienia lekarskiego na pracownika wynosi około 11-12 dni rocznie (zgodnie z danymi z 2023 i 2024 roku)." >
+        <VaIcon name="info" style="padding-left: 10px; line-height: 8px;" />
+      </VaPopover>
+
      <VaDivider/>
 
     <div style="margin-bottom: 20px; display: flex;">
-      <h6 class="va-h6" style="flex: 3; margin-top: 15px;">Twoja przewidywana wysokość emerytury w {{ yearOfBirth + workingAges[1] }} roku wynosi</h6>
+      <h6 class="va-h6" style="flex: 3; margin-top: 15px;">Przewidywana wysokość ostatniej wypłaty w {{ yearOfBirth + workingAges[1] }} roku wynosi</h6>
       <VaInnerLoading :loading="isLoading" style="flex: 1;">
-        <h3 class="va-h3" style="text-align: right;">{{ toPolishZlString(predictedRetirement) }} zł</h3>
+        <h3 class="va-h3" style="text-align: right;">{{ toPolishZlString(predictedRetirement?.przewidywanaWyplata ?? 0) }} zł</h3>
       </VaInnerLoading>
     </div>
 
-    <div>
-      <!-- <VChart style="width: 100%; height: 300px;" :option="secondReportOptions" autoresize /> -->
+    <div style="margin-bottom: 20px; display: flex;">
+      <h6 class="va-h6" style="flex: 3; margin-top: 15px;">Przewidywana wysokość emerytury w {{ yearOfBirth + workingAges[1] }} roku wynosi</h6>
+      <VaInnerLoading :loading="isLoading" style="flex: 1;">
+        <h3 class="va-h3" style="text-align: right;">{{ toPolishZlString(predictedRetirement?.wysokoscRzeczywista ?? 0) }} zł</h3>
+      </VaInnerLoading>
     </div>
- 
-      <VaInput
+
+    <div style="margin-bottom: 20px; display: flex;">
+      <h6 class="va-h6" style="flex: 3; margin-top: 15px;">Stopa zastąpienia</h6>
+      <VaInnerLoading :loading="isLoading" style="flex: 1;">
+        <h3 class="va-h3" style="text-align: right;">{{ toPolishZlString(predictedRetirement?.rr ?? 0) }} %</h3>
+      </VaInnerLoading>
+    </div>
+
+      <!-- <VaInput
           v-model="savedInZUS"
           label="Wysokość zgromadzonych środków na koncie i na subkoncie w ZUS"
           placeholder="0.00"
@@ -381,31 +375,15 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
           <template #appendInner>
             <span>zł</span>
           </template>
-        </VaInput>
-
-        <VaCheckbox
-          v-model="includeSickLeave"
-          class="mb-6"
-          label="Uwzględniaj możliwość zwolnień lekarskich"
-        />
-        <VaPopover message="Półroczne zwolnienie lekarskie to około –1,3% składki emerytalnej.">
-          <VaIcon name="info" />
-        </VaPopover>
+        </VaInput> -->
 
     </div>
   
     </template>
     <template #step-content-2>
-      <ul>
-        <li>View order summary</li>
-        <li>Edit shipping information</li>
-      </ul>
-    </template>
-    <template #step-content-3>
-      <ul>
-        <li>Review order details</li>
-        <li>Complete payment</li>
-      </ul>
+      <div>
+        <VChart style="width: 100%; height: 300px;" :option="secondReportOptions" autoresize />
+      </div>
     </template>
   </VaStepper>
 </template>

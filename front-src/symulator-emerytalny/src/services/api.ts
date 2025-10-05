@@ -7,6 +7,7 @@ export interface PostPrognozujEmerytureRequest {
   kodPocztowy: string;
   wskaznikWaloryzacjiKonta?: number | null;
   wskaznikWaloryzacjiSubkonta?: number | null;
+  sredniaIlosciDniL4WRoku: number | null;
   wynagrodzeniaBrutto: Record<number, number>;
 }
 
@@ -15,6 +16,8 @@ export interface PrzewidywanaEmerytura {
   wysokoscUrealniona: number;
   naKoncie: number;
   naSubkoncie: number;
+  przewidywanaWyplata: number;
+  rr: number;
 }
 
 export interface PostPrognozujEmerytureResponse {
