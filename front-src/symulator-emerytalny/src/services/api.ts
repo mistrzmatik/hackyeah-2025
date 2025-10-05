@@ -27,7 +27,7 @@ export interface PostPrognozujEmerytureResponse {
 export async function postPrognozujEmeryture(
   data: PostPrognozujEmerytureRequest
 ): Promise<PostPrognozujEmerytureResponse> {
-  const response = await fetch("/api/PostPrognozujEmeryture", {
+  const response = await fetch("/PostPrognozujEmeryture", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
