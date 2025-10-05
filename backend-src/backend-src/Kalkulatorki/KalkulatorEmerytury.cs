@@ -71,7 +71,22 @@ namespace backend_src.Kalkulatorki
             return wynik;
         }
 
-        public Dictionary<int, decimal> PrzewidzWartoscNaKoncie(decimal obecnaWartosc, int obecnyRok, int przewidywaneDo, decimal? waloryzacjaKonta = null)
+        public Dictionary<int, decimal> PrzewidzWynagrodzenia(decimal wyplata, int obecnyRok, int przewidywaneDo)
+        {
+            var wynik = new Dictionary<int, decimal>();
+            wynik.Add(obecnyRok, wyplata);
+
+            for (int rok = obecnyRok + 1; rok <= przewidywaneDo; rok++)
+            {
+                wyplata *= Dane.WzrostyPlac[rok];
+
+                wynik.Add(rok, wyplata);
+            }
+
+            return wynik;
+        }
+
+        public Dictionary<int, decimal> PrzewidzWartoscNaKoncie(decimal obecnaWartosc, decimal wyplata, int obecnyRok, int przewidywaneDo, decimal? waloryzacjaKonta = null)
         {
             var wynik = new Dictionary<int, decimal>();
             wynik.Add(obecnyRok, obecnaWartosc);
@@ -90,7 +105,9 @@ namespace backend_src.Kalkulatorki
 
                 obecnaWartosc = Math.Round(obecnaWartosc * czynnik, 2, MidpointRounding.AwayFromZero);
 
-                obecnaWartosc += Dane.PrzewidywaneMiesieczneZarobkiNaRok[rok] * 12m * (Dane.SkladkaEmerytalnaProcentKonto / 100m);
+                wyplata *= Dane.WzrostyPlac[rok];
+
+                obecnaWartosc += wyplata * 12m * (Dane.SkladkaEmerytalnaProcentKonto / 100m);
 
                 wynik.Add(rok, obecnaWartosc);
             }
@@ -98,7 +115,7 @@ namespace backend_src.Kalkulatorki
             return wynik;
         }
 
-        public Dictionary<int, decimal> PrzewidzWartoscNaSubkoncie(decimal obecnaWartosc, int obecnyRok, int przewidywaneDo, decimal? waloryzacjaSubkonta = null)
+        public Dictionary<int, decimal> PrzewidzWartoscNaSubkoncie(decimal obecnaWartosc, decimal wyplata, int obecnyRok, int przewidywaneDo, decimal? waloryzacjaSubkonta = null)
         {
             var wynik = new Dictionary<int, decimal>();
             wynik.Add(obecnyRok, obecnaWartosc);
@@ -117,7 +134,9 @@ namespace backend_src.Kalkulatorki
 
                 obecnaWartosc = Math.Round(obecnaWartosc * czynnik, 2, MidpointRounding.AwayFromZero);
 
-                obecnaWartosc += Dane.PrzewidywaneMiesieczneZarobkiNaRok[rok] * 12m * (Dane.SkladkaEmerytalnaProcentSubkonto / 100m);
+                wyplata *= Dane.WzrostyPlac[rok];
+
+                obecnaWartosc += wyplata * 12m * (Dane.SkladkaEmerytalnaProcentSubkonto / 100m);
 
                 wynik.Add(rok, obecnaWartosc);
             }

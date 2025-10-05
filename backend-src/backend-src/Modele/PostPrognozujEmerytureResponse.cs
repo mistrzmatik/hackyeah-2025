@@ -11,5 +11,7 @@
         public decimal WysokoscUrealniona { get; set; }
         public decimal NaKoncie { get; set; }
         public decimal NaSubkoncie { get; set; }
+        public decimal PrzewidywanaWyplata { get; set; }
+        public decimal RR { get; set; }
     }
 }
