@@ -10,6 +10,7 @@
         public string KodPocztowy { get; set; } = "";
         public decimal? WskaznikWaloryzacjiKonta { get; set; }
         public decimal? WskaznikWaloryzacjiSubkonta { get; set; }
+        public decimal? sredniaIlosciDniL4WRoku { get; set; }
         public Dictionary<int, decimal> WynagrodzeniaBrutto { get; set; } = new Dictionary<int, decimal>();
     }
 }
