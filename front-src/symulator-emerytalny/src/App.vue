@@ -18,14 +18,16 @@ const steps = [
   { label: 'Podsumowanie' }
 ]
 
-const expectedRetirementValue = ref(8769.08)
+const expectedRetirement = ref(8769.08)
 const yearOfBirth = ref(1990)
 const gender = ref(0)
 const grossSalary = ref(7500)
 const workingAges = ref([25, 60])
 const savedInZUS = ref(0)
-
 const includeSickLeave = ref(false)
+
+const isLoading = ref(false)
+const predictedRetirement = ref(0)
 
 watch(gender, async (after) => {
   if (after == MAN && workingAges.value[1] == AGE_FOR_WOMAN) {
@@ -35,7 +37,7 @@ watch(gender, async (after) => {
   }
 });
 
-watch(expectedRetirementValue, async (after) => {
+watch(expectedRetirement, async (after) => {
   firstReportOptions.value.series[0].data[0] = after;
 });
 
@@ -53,7 +55,7 @@ const firstReportOptions = ref({
       realtimeSort: true,
       name: 'Oczekiwana wysokość emerytury',
       type: 'bar',
-      data: [expectedRetirementValue.value],
+      data: [expectedRetirement.value],
       label: {
         show: true,
         valueAnimation: true,
@@ -107,16 +109,45 @@ const firstReportOptions = ref({
   animationEasingUpdate: 'linear'
 });
 
+watch([gender, yearOfBirth, workingAges, grossSalary], async ([newGender, newYearOfBirth, newWorkingAges, newGrossSalary]) => {
+  await debouncedFetchReport();
+})
+
+let debounceTimer = null
+const debouncedFetchReport = () => {
+  isLoading.value = true;
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(async () => {
+    await fetchReport()
+  }, 500) // 500 ms opóźnienia
+}
+
 const fetchReport = async () => {
-  postPrognozujEmeryture({
-    czyMezczyzna: gender.value == MAN,
-    oczekiwanaEmerytura: expectedRetirementValue.value,
-    wiek: new Date().getFullYear() - yearOfBirth.value,
-    wiekPrzejsciaNaEmeryture: workingAges.value[1],
-    wynagrodzeniaBrutto: grossSalary.value
-  }).then(r => {
-    console.log(r);
-  })
+  isLoading.value = true;
+
+  try {
+    var response = await postPrognozujEmeryture({
+      czyMezczyzna: gender.value == MAN,
+      oczekiwanaEmerytura: expectedRetirement.value,
+      wiek: new Date().getFullYear() - yearOfBirth.value,
+      wiekPrzejsciaNaEmeryture: workingAges.value[1],
+      wynagrodzeniaBrutto: {2025: grossSalary.value},
+    });
+
+    //secondReportOptions.value.xAxis[0].data = Object.keys(response.przewidywanaEmerytura)
+    //secondReportOptions.value.series[0].data = Object.entries(response.przewidywanaEmerytura).map(([_, value]) => value.wysokoscRzeczywista)
+
+    predictedRetirement.value = response.przewidywanaEmerytura[yearOfBirth.value + workingAges.value[1]].wysokoscRzeczywista;
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+const toPolishZlString = (num) => {
+  return num.toLocaleString('pl-PL', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 }
 
 const secondReportOptions = ref({
@@ -141,7 +172,7 @@ const secondReportOptions = ref({
     {
       type: 'category',
       boundaryGap: false,
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', '', '']
     }
   ],
   yAxis: [
@@ -230,7 +261,7 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
     <h6 class="va-h6">Jakiej wysokości emeryturę chciałbyś otrzymywać w przyszłości?</h6>
     <div style="display: flex; margin-bottom: 20px;">
       <VaInput
-        v-model="expectedRetirementValue"
+        v-model="expectedRetirement"
         placeholder="0.00"
         type="number"
         input-class="text-right"
@@ -243,7 +274,7 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
       <div style="display: flex; align-items: center; margin-right: 5px;">brutto</div>
       <VaDivider vertical />
       <div style="display: flex; flex-direction: column; flex: 1;">
-        <VaSlider v-model="expectedRetirementValue" min="0" max="20000" style="flex: 1;"/>
+        <VaSlider v-model="expectedRetirement" min="0" max="20000" style="flex: 1;"/>
         <div>
           <span style="font-size: 12px;">0 zł</span>
           <span style="font-size: 12px; float: right;">20 000 zł</span>
@@ -327,10 +358,20 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
 
       </div>
     <div>
-    <div>
-      <VChart style="width: 100%; height: 300px;" :option="secondReportOptions" autoresize />
+      
+     <VaDivider/>
+
+    <div style="margin-bottom: 20px; display: flex;">
+      <h6 class="va-h6" style="flex: 3; margin-top: 15px;">Twoja przewidywana wysokość emerytury w {{ yearOfBirth + workingAges[1] }} roku wynosi</h6>
+      <VaInnerLoading :loading="isLoading" style="flex: 1;">
+        <h3 class="va-h3" style="text-align: right;">{{ toPolishZlString(predictedRetirement) }} zł</h3>
+      </VaInnerLoading>
     </div>
 
+    <div>
+      <!-- <VChart style="width: 100%; height: 300px;" :option="secondReportOptions" autoresize /> -->
+    </div>
+ 
       <VaInput
           v-model="savedInZUS"
           label="Wysokość zgromadzonych środków na koncie i na subkoncie w ZUS"
@@ -351,7 +392,6 @@ Skorzystaj z Symulatora emerytalnego, aby sprawdzić, jak Twoje decyzje zawodowe
           <VaIcon name="info" />
         </VaPopover>
 
-        <VaButton @click="fetchReport" >Test</VaButton>
     </div>
   
     </template>
