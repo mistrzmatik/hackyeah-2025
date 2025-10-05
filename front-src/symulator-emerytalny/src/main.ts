@@ -23,7 +23,7 @@ const app = createApp(App).use(createVuestic({
           },
         },
         i18n: {
-          next: "Następny",
+          next: "Następny krok",
           back: "Wróć",
           finish: "Zakończ"
         },
